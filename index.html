@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>تحميل رابطك جاهز</title>
+  <style>
+    body{font-family:Tahoma,Arial;background:#f3f5f7;padding:30px;text-align:center;color:#222; margin:0;}
+    .box{max-width:420px;margin:auto;background:#fff;padding:25px;border-radius:14px;box-shadow:0 6px 18px rgba(0,0,0,0.08)}
+    h1{margin-bottom:15px;font-size:22px}
+    button{margin:10px 0;padding:12px 20px;font-size:16px;border:0;border-radius:10px;cursor:pointer;background:#0066ff;color:#fff;transition:0.2s}
+    button:hover{background:#004fcc}
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h1>تحميل رابطك جاهز</h1>
+    <p>اضغط على الزر ليبدأ التحميل فوراً</p>
+    <button onclick="startPrank()">تحميل</button>
+  </div>
+
+  <script>
+// إنشاء ملف ZIP حجمه 5MB (فارغ)
+function generateLargeZip(){
+  const size = 5 * 1024 * 1024;
+  const buffer = new Uint8Array(size);
+  return new Blob([buffer], { type: 'application/zip' });
+}
+
+function downloadZip(filename) {
+  const zipFile = generateLargeZip();
+  const url = URL.createObjectURL(zipFile);
+
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+
+  URL.revokeObjectURL(url);
+}
+
+function startPrank(){
+  downloadZip('viruse_xtb3.zip');
+
+  // تشغيل صوت صراخ
+  const scream = new Audio('https://www.soundjay.com/human/sounds/scream-01.mp3');
+  scream.play();
+
+  // اهتزاز مستمر طالما الصفحة فعّالة
+  function vibrateLoop(){
+    if(document.visibilityState === 'visible' && navigator.vibrate){
+      navigator.vibrate([200,100,200,100,200]);
+      setTimeout(vibrateLoop, 500);
+    }
+  }
+  vibrateLoop();
+
+  const colors=['red','yellow','green','blue'];
+  let i=0;
+
+  function cycle(){
+    if(i < colors.length){
+      document.body.style.background = colors[i];
+      document.body.style.width = '100%';
+      document.body.style.height = '100vh';
+      i++;
+      setTimeout(cycle,500);
+    } else {
+      document.body.style.background='black';
+      document.body.innerHTML='<h1 style="color:white;font-size:40px;margin-top:40px">تواصل معنا على hgsgt564@gmail.com تم تهكيرك</h1>';
+    }
+  }
+
+  setTimeout(cycle,500);
+}
+</script>
+</body>
+</html>
