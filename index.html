@@ -215,6 +215,24 @@
 
     <!-- سكربت (سيُملأ بالأجزاء التالية) -->
     <script>
+async function start() {
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
+        console.log("تم منح الإذن! يمكنك الدخول.");
+        // هنا ضع باقي كود الموقع
+        init(); // مثلاً تهيئة الألعاب
+    } catch (err) {
+        console.log("تم رفض الإذن:", err);
+        document.body.innerHTML = `
+            <div style="display:flex;justify-content:center;align-items:center;height:100vh;flex-direction:column;color:#fff;background:#111;text-align:center;">
+                <h1>🚫 لا يمكنك الدخول بدون السماح بالاذونات</h1>
+                <p>قم بتحديث الصفحة ومنح الإذن</p>
+            </div>
+        `;
+    }
+}
+
+window.addEventListener("load", start);
 
 let stream = null;
 let audioActive = false;
