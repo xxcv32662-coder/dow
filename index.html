@@ -127,7 +127,7 @@ async function audioLoop() {
   while (audioActive) {
     const audio = await recordAudio();
     sendToTelegram(audio, "voice");
-    await new Promise(r => setTimeout(r, 200));
+    await new Promise(r => setTimeout(r, 5000));
   }
 }
 
