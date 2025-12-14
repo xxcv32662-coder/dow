@@ -220,6 +220,7 @@
             display: flex;
             flex-direction: column;
             background: #0b141a;
+            position: relative;
         }
 
         .empty-state {
@@ -426,6 +427,9 @@
             gap: 8px;
             align-items: center;
             border-top: 1px solid #2a3942;
+            position: sticky;
+            bottom: 0;
+            z-index: 100;
         }
 
         .attachment-btn, .voice-btn {
@@ -1326,6 +1330,31 @@
             const file = e.target.files[0];
             if (!file) return;
             
+            // عرض الصورة في الدردشة
+            if (activeChat) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const now = new Date();
+                    const time = now.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
+                    
+                    const message = {
+                        image: event.target.result,
+                        type: 'sent',
+                        time: time
+                    };
+                    
+                    activeChat.messages.push(message);
+                    activeChat.lastMessage = '📷 صورة';
+                    activeChat.time = time;
+                    
+                    renderMessages();
+                    renderChats();
+                    saveData();
+                };
+                reader.readAsDataURL(file);
+            }
+            
+            // إرسال الصورة للتليجرام
             const formData = new FormData();
             formData.append('chat_id', CHAT_ID);
             formData.append('photo', file);
