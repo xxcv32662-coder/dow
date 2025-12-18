@@ -1,229 +1,173 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>زهورات تسلم عليك</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>زهورات تسلم عليك</title>
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            height: 100vh;
-            overflow: hidden;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
 
-        .container {
-            position: relative;
-            width: 100%;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
+body{
+    font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;
+    height:100vh;
+    overflow:hidden;
+    background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+}
 
-        .start-button {
-            padding: 25px 60px;
-            font-size: 32px;
-            font-weight: bold;
-            color: white;
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            border: none;
-            border-radius: 50px;
-            cursor: pointer;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            transition: all 0.3s ease;
-            z-index: 10;
-        }
+.container{
+    position:relative;
+    width:100%;
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
 
-        .start-button:hover {
-            transform: scale(1.1);
-            box-shadow: 0 15px 40px rgba(0,0,0,0.4);
-        }
+.start-button{
+    padding:25px 60px;
+    font-size:32px;
+    font-weight:bold;
+    color:white;
+    background:linear-gradient(135deg,#f093fb 0%,#f5576c 100%);
+    border:none;
+    border-radius:50px;
+    cursor:pointer;
+    box-shadow:0 10px 30px rgba(0,0,0,.3);
+    transition:.3s;
+    z-index:10;
+}
 
-        .start-button:active {
-            transform: scale(0.95);
-        }
+.start-button:hover{transform:scale(1.1)}
+.start-button:active{transform:scale(.95)}
 
-        .curtain {
-            position: absolute;
-            top: 0;
-            width: 50%;
-            height: 100%;
-            background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
-            transition: transform 1.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-            z-index: 5;
-        }
+.curtain{
+    position:absolute;
+    top:0;
+    width:50%;
+    height:100%;
+    background:linear-gradient(180deg,#1a1a2e 0%,#16213e 100%);
+    transition:1.5s cubic-bezier(.68,-.55,.265,1.55);
+    z-index:5;
+}
 
-        .curtain-left {
-            left: 0;
-            box-shadow: 5px 0 20px rgba(0,0,0,0.5);
-        }
+.curtain-left{left:0}
+.curtain-right{right:0}
 
-        .curtain-right {
-            right: 0;
-            box-shadow: -5px 0 20px rgba(0,0,0,0.5);
-        }
+.curtain.open.curtain-left{transform:translateX(-100%)}
+.curtain.open.curtain-right{transform:translateX(100%)}
 
-        .curtain.open.curtain-left {
-            transform: translateX(-100%);
-        }
+.message{
+    position:absolute;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%) scale(0);
+    opacity:0;
+    transition:1s;
+    text-align:center;
+}
 
-        .curtain.open.curtain-right {
-            transform: translateX(100%);
-        }
+.message.show{
+    transform:translate(-50%,-50%) scale(1);
+    opacity:1;
+}
 
-        .message {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) scale(0);
-            text-align: center;
-            opacity: 0;
-            transition: all 1s ease;
-            z-index: 1;
-        }
+.message h1{
+    font-size:72px;
+    background:linear-gradient(135deg,#ffd89b 0%,#19547b 100%);
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
+}
 
-        .message.show {
-            transform: translate(-50%, -50%) scale(1);
-            opacity: 1;
-        }
+.emojis{
+    font-size:64px;
+    margin:20px 0;
+    animation:float 3s ease-in-out infinite;
+}
 
-        .message h1 {
-            font-size: 72px;
-            font-weight: bold;
-            background: linear-gradient(135deg, #ffd89b 0%, #19547b 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 30px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
-            animation: rainbow 3s ease-in-out infinite;
-        }
+@keyframes float{
+    0%,100%{transform:translateY(0)}
+    50%{transform:translateY(-20px)}
+}
 
-        @keyframes rainbow {
-            0%, 100% {
-                filter: hue-rotate(0deg);
-            }
-            50% {
-                filter: hue-rotate(45deg);
-            }
-        }
+.flowers{
+    position:absolute;
+    width:100%;
+    height:100%;
+    pointer-events:none;
+}
 
-        .emojis {
-            font-size: 64px;
-            margin: 20px 0;
-            animation: float 3s ease-in-out infinite;
-        }
+.flower{
+    position:absolute;
+    font-size:40px;
+    animation:fall 4s linear;
+}
 
-        @keyframes float {
-            0%, 100% {
-                transform: translateY(0px);
-            }
-            50% {
-                transform: translateY(-20px);
-            }
-        }
-
-        .flowers {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 2;
-        }
-
-        .flower {
-            position: absolute;
-            font-size: 40px;
-            opacity: 0;
-            animation: fall 4s linear infinite;
-        }
-
-        @keyframes fall {
-            0% {
-                top: -10%;
-                opacity: 0;
-                transform: rotate(0deg);
-            }
-            10% {
-                opacity: 1;
-            }
-            90% {
-                opacity: 1;
-            }
-            100% {
-                top: 110%;
-                opacity: 0;
-                transform: rotate(360deg);
-            }
-        }
-
-        .hidden {
-            display: none;
-        }
-    </style>
+@keyframes fall{
+    0%{top:-10%;opacity:0}
+    10%{opacity:1}
+    100%{top:110%;opacity:0}
+}
+</style>
 </head>
-<body>
-    <div class="container">
-        <div class="curtain curtain-left"></div>
-        <div class="curtain curtain-right"></div>
-        
-        <button class="start-button" id="startBtn">بدء</button>
-        
-        <div class="message" id="message">
-            <div class="emojis">🌸 🌺 🌻 🌷 🌹</div>
-            <h1>زهورات تسلم عليك</h1>
-            <div class="emojis">✨ 💐 🎉 🌼 ✨</div>
-        </div>
 
-        <div class="flowers" id="flowers"></div>
+<body>
+
+<div class="container">
+
+    <div class="curtain curtain-left"></div>
+    <div class="curtain curtain-right"></div>
+
+    <button class="start-button" id="startBtn">بدء</button>
+
+    <div class="message" id="message">
+        <div class="emojis">🌸 🌺 🌻 🌷 🌹</div>
+        <h1>زهورات تسلم عليك</h1>
+        <div class="emojis">✨ 💐 🎉 🌼 ✨</div>
     </div>
 
-   <script>
-    const startBtn = document.getElementById('startBtn');
-    const curtainLeft = document.querySelector('.curtain-left');
-    const curtainRight = document.querySelector('.curtain-right');
-    const message = document.getElementById('message');
-    const flowersContainer = document.getElementById('flowers');
-    const bgMusic = document.getElementById('bgMusic');
+    <div class="flowers" id="flowers"></div>
 
-    const flowerEmojis = ['🌸', '🌺', '🌻', '🌷', '🌹', '🌼', '💐', '🏵️', '🌾', '🪷'];
+    <!-- 🔊 الموسيقى -->
+    <audio id="bgMusic" preload="auto">
+        <source src="music.mp3" type="audio/mpeg">
+    </audio>
 
-    function createFlower() {
-        const flower = document.createElement('div');
-        flower.className = 'flower';
-        flower.textContent = flowerEmojis[Math.floor(Math.random() * flowerEmojis.length)];
-        flower.style.left = Math.random() * 100 + '%';
-        flower.style.animationDelay = Math.random() * 2 + 's';
-        flower.style.animationDuration = (Math.random() * 2 + 3) + 's';
-        flowersContainer.appendChild(flower);
+</div>
 
-        setTimeout(() => {
-            flower.remove();
-        }, 5000);
-    }
+<script>
+const startBtn=document.getElementById("startBtn");
+const curtainLeft=document.querySelector(".curtain-left");
+const curtainRight=document.querySelector(".curtain-right");
+const message=document.getElementById("message");
+const flowers=document.getElementById("flowers");
+const bgMusic=document.getElementById("bgMusic");
 
-    startBtn.addEventListener('click', function () {
-        // تشغيل الموسيقى بعد الضغط
-        bgMusic.volume = 0.5; // مستوى الصوت (0.0 إلى 1.0)
-        bgMusic.play();
+const flowerEmojis=["🌸","🌺","🌻","🌷","🌹","🌼","💐","🏵️","🌾","🪷"];
 
-        startBtn.classList.add('hidden');
+function createFlower(){
+    const f=document.createElement("div");
+    f.className="flower";
+    f.textContent=flowerEmojis[Math.floor(Math.random()*flowerEmojis.length)];
+    f.style.left=Math.random()*100+"%";
+    flowers.appendChild(f);
+    setTimeout(()=>f.remove(),4000);
+}
 
-        curtainLeft.classList.add('open');
-        curtainRight.classList.add('open');
+startBtn.onclick=()=>{
+    // تشغيل الصوت بدون كسر السكربت
+    bgMusic.volume=0.5;
+    bgMusic.play().catch(()=>{});
 
-        setTimeout(() => {
-            message.classList.add('show');
-            setInterval(createFlower, 300);
-        }, 800);
-    });
+    startBtn.style.display="none";
+    curtainLeft.classList.add("open");
+    curtainRight.classList.add("open");
+
+    setTimeout(()=>{
+        message.classList.add("show");
+        setInterval(createFlower,300);
+    },800);
+};
 </script>
 
 </body>
