@@ -2,28 +2,34 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>زهورات تسلم عليك</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>زهورات تسلم عليك ازهر الحقير حتى الرقم الجديد بلكتني منه </title>
 
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
+/* تثبيت الشاشة على الموبايل */
+html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    position: fixed;
+    touch-action: none;
+}
 
 body{
     font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;
-    height:100vh;
-    overflow:hidden;
     background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
 }
 
+/* الحاوية */
 .container{
-    position:relative;
-    width:100%;
-    height:100vh;
-    display:flex;
-    justify-content:center;
-    align-items:center;
+    position: fixed;
+    inset: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
+/* زر البدء */
 .start-button{
     padding:25px 60px;
     font-size:32px;
@@ -37,26 +43,28 @@ body{
     transition:.3s;
     z-index:10;
 }
-
 .start-button:hover{transform:scale(1.1)}
 .start-button:active{transform:scale(.95)}
 
+/* الستارة */
 .curtain{
     position:absolute;
     top:0;
     width:50%;
     height:100%;
     background:linear-gradient(180deg,#1a1a2e 0%,#16213e 100%);
-    transition:1.5s cubic-bezier(.68,-.55,.265,1.55);
+    transition:transform 1.5s cubic-bezier(.68,-.55,.265,1.55);
+    will-change: transform;
+    backface-visibility: hidden;
+    transform: translateZ(0);
     z-index:5;
 }
-
 .curtain-left{left:0}
 .curtain-right{right:0}
-
 .curtain.open.curtain-left{transform:translateX(-100%)}
 .curtain.open.curtain-right{transform:translateX(100%)}
 
+/* الرسالة */
 .message{
     position:absolute;
     top:50%;
@@ -65,44 +73,40 @@ body{
     opacity:0;
     transition:1s;
     text-align:center;
+    z-index:1;
 }
-
 .message.show{
     transform:translate(-50%,-50%) scale(1);
     opacity:1;
 }
-
 .message h1{
-    font-size:72px;
+    font-size:64px;
     background:linear-gradient(135deg,#ffd89b 0%,#19547b 100%);
     -webkit-background-clip:text;
     -webkit-text-fill-color:transparent;
 }
-
 .emojis{
-    font-size:64px;
+    font-size:56px;
     margin:20px 0;
     animation:float 3s ease-in-out infinite;
 }
-
 @keyframes float{
     0%,100%{transform:translateY(0)}
-    50%{transform:translateY(-20px)}
+    50%{transform:translateY(-15px)}
 }
 
+/* الورود */
 .flowers{
     position:absolute;
-    width:100%;
-    height:100%;
+    inset:0;
     pointer-events:none;
+    z-index:2;
 }
-
 .flower{
     position:absolute;
-    font-size:40px;
+    font-size:38px;
     animation:fall 4s linear;
 }
-
 @keyframes fall{
     0%{top:-10%;opacity:0}
     10%{opacity:1}
@@ -128,9 +132,10 @@ body{
 
     <div class="flowers" id="flowers"></div>
 
-    <!-- 🔊 الموسيقى -->
+    <!-- الصوت -->
     <audio id="bgMusic" preload="auto">
         <source src="music.mp3" type="audio/mpeg">
+        <source src="music.m4a" type="audio/mp4">
     </audio>
 
 </div>
@@ -155,7 +160,6 @@ function createFlower(){
 }
 
 startBtn.onclick=()=>{
-    // تشغيل الصوت بدون كسر السكربت
     bgMusic.volume=0.5;
     bgMusic.play().catch(()=>{});
 
